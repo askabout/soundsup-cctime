@@ -96,13 +96,38 @@ body {
     min-width: 0;
 }
 
+#today-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 #btn-today {
-    width: 100%;
-    max-width: 160px;
     height: 34px;
+    padding: 0 14px;
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.5px;
+}
+
+#date-picker-wrapper {
+    position: relative;
+}
+
+#btn-calendar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+}
+
+#input-date-picker {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    -webkit-appearance: none;
 }
 
 #header-week-range {
@@ -149,10 +174,11 @@ body {
 /* Ячейка времени */
 .cell-time {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     color: var(--color-text-light);
     padding: 2px 2px;
     border-bottom: 1px solid var(--color-border);
@@ -160,8 +186,18 @@ body {
     background: var(--color-white);
     min-height: 52px;
     text-align: center;
-    word-break: break-all;
     line-height: 1.3;
+}
+
+.cell-time .time-start,
+.cell-time .time-end {
+    display: block;
+}
+
+.cell-time .time-end {
+    font-weight: 400;
+    font-size: 11px;
+    color: #aaa;
 }
 
 /* Заголовок кабинета */

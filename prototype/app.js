@@ -116,6 +116,7 @@ function renderHeader() {
     const { monday, sunday } = getWeekRange(currentDate);
     document.getElementById('header-week-range').textContent =
         `${formatDateShort(monday)} — ${formatDateDisplay(sunday)}`;
+    document.getElementById('input-date-picker').value = formatDateISO(currentDate);
 }
 
 /* ---------- Render schedule ---------- */
@@ -179,7 +180,19 @@ function renderSchedule() {
         const timeCell = document.createElement('div');
         timeCell.className = 'cell-time' + (isPast ? ' past' : '');
         timeCell.id = `time-${si}`;
-        timeCell.textContent = slot.time;
+        const timeParts = slot.time.split('-');
+        if (timeParts.length === 2) {
+            const startSpan = document.createElement('span');
+            startSpan.className = 'time-start';
+            startSpan.textContent = timeParts[0];
+            const endSpan = document.createElement('span');
+            endSpan.className = 'time-end';
+            endSpan.textContent = timeParts[1];
+            timeCell.appendChild(startSpan);
+            timeCell.appendChild(endSpan);
+        } else {
+            timeCell.textContent = slot.time;
+        }
         grid.appendChild(timeCell);
 
         // Reserve cells per room
@@ -494,6 +507,33 @@ function initSwipe() {
     }, { passive: true });
 }
 
+/* ---------- Pull-to-refresh ---------- */
+function initPullToRefresh() {
+    const el = document.getElementById('schedule-main');
+    let startY = 0;
+    let pulling = false;
+
+    el.addEventListener('touchstart', (e) => {
+        if (el.scrollTop === 0) {
+            startY = e.touches[0].clientY;
+            pulling = true;
+        }
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+        if (!pulling) return;
+        const dy = e.touches[0].clientY - startY;
+        if (dy > 120 && el.scrollTop === 0) {
+            pulling = false;
+            location.reload();
+        }
+    }, { passive: true });
+
+    el.addEventListener('touchend', () => {
+        pulling = false;
+    }, { passive: true });
+}
+
 /* ---------- Init ---------- */
 async function init() {
     try {
@@ -513,6 +553,12 @@ async function init() {
     document.getElementById('btn-prev-week').addEventListener('click', goToPrevWeek);
     document.getElementById('btn-next-week').addEventListener('click', goToNextWeek);
     document.getElementById('btn-today').addEventListener('click', goToToday);
+    document.getElementById('input-date-picker').addEventListener('change', (e) => {
+        if (e.target.value) {
+            currentDate = new Date(e.target.value + 'T00:00:00');
+            renderSchedule();
+        }
+    });
     document.getElementById('btn-reserve-save').addEventListener('click', handleSave);
     document.getElementById('btn-reserve-cancel').addEventListener('click', closeReserveModal);
     document.getElementById('btn-share-specialist').addEventListener('click', handleShareSpecialist);
@@ -523,6 +569,7 @@ async function init() {
     });
 
     initSwipe();
+    initPullToRefresh();
     renderSchedule();
 }
 
