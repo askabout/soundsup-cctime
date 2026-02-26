@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>CCTime — Расписание</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,9 +16,16 @@
 
         <!-- Шапка -->
         <header id="schedule-header">
-            <button id="btn-prev-day" type="button">&larr;</button>
-            <div id="header-center"></div>
-            <button id="btn-next-day" type="button">&rarr;</button>
+            <div id="header-nav-row">
+                <button id="btn-prev-week" type="button">&laquo;</button>
+                <button id="btn-prev-day" type="button">&lsaquo;</button>
+                <div id="header-center">
+                    <button id="btn-today" type="button">Сегодня</button>
+                    <div id="header-week-range"></div>
+                </div>
+                <button id="btn-next-day" type="button">&rsaquo;</button>
+                <button id="btn-next-week" type="button">&raquo;</button>
+            </div>
         </header>
 
         <!-- Рабочая область -->
@@ -53,6 +63,7 @@
             <div class="form-group form-check">
                 <input id="check-specialist-confirm" type="checkbox">
                 <label id="label-specialist-confirm" for="check-specialist-confirm">Подтверждено (специалист)</label>
+                <button id="btn-share-specialist" class="btn-share" type="button" title="Поделиться">&#x1F4E4;</button>
             </div>
 
             <hr>
@@ -68,6 +79,7 @@
             <div class="form-group form-check">
                 <input id="check-client-confirm" type="checkbox">
                 <label id="label-client-confirm" for="check-client-confirm">Подтверждено (клиент)</label>
+                <button id="btn-share-client" class="btn-share" type="button" title="Поделиться">&#x1F4E4;</button>
             </div>
 
             <div id="reserve-modal-buttons">

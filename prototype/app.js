@@ -36,6 +36,12 @@ function formatDateDisplay(date) {
     return `${d}.${m}.${y}`;
 }
 
+function formatDateShort(date) {
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    return `${d}.${m}`;
+}
+
 function getDayName(date) {
     return DAY_NAMES[date.getDay()];
 }
@@ -51,6 +57,14 @@ function isDatePast(dateStr) {
     today.setHours(0, 0, 0, 0);
     const d = new Date(dateStr + 'T00:00:00');
     return d < today;
+}
+
+function getWeekRange(date) {
+    const day = date.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = addDays(date, diffToMonday);
+    const sunday = addDays(monday, 6);
+    return { monday, sunday };
 }
 
 /* ---------- Storage ---------- */
@@ -97,8 +111,17 @@ function getClientName(id) {
     return c ? c.name : '';
 }
 
+/* ---------- Render header ---------- */
+function renderHeader() {
+    const { monday, sunday } = getWeekRange(currentDate);
+    document.getElementById('header-week-range').textContent =
+        `${formatDateShort(monday)} — ${formatDateDisplay(sunday)}`;
+}
+
 /* ---------- Render schedule ---------- */
 function renderSchedule() {
+    renderHeader();
+
     const dateStr = formatDateISO(currentDate);
     const isPast = isDatePast(dateStr);
     const rooms = config.rooms;
@@ -107,7 +130,7 @@ function renderSchedule() {
 
     // Date row
     const dateRow = document.getElementById('schedule-date-row');
-    dateRow.style.gridTemplateColumns = `70px repeat(${rooms.length}, 1fr)`;
+    dateRow.style.gridTemplateColumns = `56px repeat(${rooms.length}, 1fr)`;
     document.getElementById('date-time-label').textContent = '';
 
     const dateLabel = document.getElementById('date-label');
@@ -118,7 +141,7 @@ function renderSchedule() {
     // Grid
     const grid = document.getElementById('schedule-grid');
     grid.innerHTML = '';
-    grid.style.gridTemplateColumns = `70px repeat(${rooms.length}, 1fr)`;
+    grid.style.gridTemplateColumns = `56px repeat(${rooms.length}, 1fr)`;
 
     // Room headers
     const emptyHeader = document.createElement('div');
@@ -137,7 +160,6 @@ function renderSchedule() {
     // Rows
     slots.forEach((slot, si) => {
         if (slot.type === 'break') {
-            // Break row spans all columns
             const timeCell = document.createElement('div');
             timeCell.className = 'cell-break cell-break-time';
             timeCell.id = `break-time-${si}`;
@@ -196,6 +218,11 @@ function renderSchedule() {
                         clientSpan.appendChild(dot);
                     }
                 }
+
+                // Both confirmed — green cell
+                if (reserve.specialistConfirm && reserve.clientConfirm) {
+                    cell.classList.add('both-confirmed');
+                }
             }
 
             cell.appendChild(specSpan);
@@ -211,7 +238,7 @@ function renderSchedule() {
 }
 
 /* ---------- Reserve modal ---------- */
-let modalContext = null; // { dateStr, timeSlot, roomId, roomName, isPast, existingReserve }
+let modalContext = null;
 
 function openReserveModal(dateStr, timeSlot, roomId, roomName, isPast) {
     const modal = document.getElementById('reserve-modal');
@@ -219,23 +246,18 @@ function openReserveModal(dateStr, timeSlot, roomId, roomName, isPast) {
 
     modalContext = { dateStr, timeSlot, roomId, roomName, isPast, existingReserve: existing };
 
-    // Title & info
     document.getElementById('reserve-modal-title').textContent = existing ? 'Редактирование резерва' : 'Новый резерв';
     document.getElementById('reserve-modal-info').textContent = `${roomName} | ${timeSlot} | ${formatDateDisplay(new Date(dateStr + 'T00:00:00'))}`;
 
-    // Populate selects
     populateSelect('select-specialist', config.specialists, existing ? existing.specialistId : GUID_EMPTY);
     populateSelect('select-client', config.clients, existing ? existing.clientId : GUID_EMPTY);
 
-    // Counts
     document.getElementById('input-specialist-count').value = 1;
     document.getElementById('input-client-count').value = 1;
 
-    // Confirms
     document.getElementById('check-specialist-confirm').checked = existing ? existing.specialistConfirm : false;
     document.getElementById('check-client-confirm').checked = existing ? existing.clientConfirm : false;
 
-    // Show/hide save button
     const saveBtn = document.getElementById('btn-reserve-save');
     saveBtn.style.display = isPast ? 'none' : '';
 
@@ -259,6 +281,68 @@ function populateSelect(selectId, items, selectedId) {
     });
 }
 
+/* ---------- Share (Web Share API) ---------- */
+function copyToClipboardFallback(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        alert('Текст скопирован в буфер обмена.');
+    } catch {
+        alert('Скопируйте текст вручную:\n\n' + text);
+    }
+    document.body.removeChild(ta);
+}
+
+async function shareText(text) {
+    const shareData = { text };
+    if (navigator.share) {
+        try {
+            if (navigator.canShare && !navigator.canShare(shareData)) {
+                copyToClipboardFallback(text);
+                return;
+            }
+            await navigator.share(shareData);
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                copyToClipboardFallback(text);
+            }
+        }
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            alert('Текст скопирован в буфер обмена.');
+        } catch {
+            copyToClipboardFallback(text);
+        }
+    } else {
+        copyToClipboardFallback(text);
+    }
+}
+
+function handleShareSpecialist() {
+    if (!modalContext) return;
+    const { dateStr, timeSlot, roomName } = modalContext;
+    const clientId = document.getElementById('select-client').value;
+    const clientName = getClientName(clientId);
+    const displayName = (clientName && clientName !== '-') ? clientName : 'Клиент';
+    const dateDisplay = formatDateDisplay(new Date(dateStr + 'T00:00:00'));
+    const text = `${displayName} подтвердил занятие ${dateDisplay} ${timeSlot}`;
+    shareText(text);
+}
+
+function handleShareClient() {
+    if (!modalContext) return;
+    const { dateStr, timeSlot, roomName } = modalContext;
+    const dateDisplay = formatDateDisplay(new Date(dateStr + 'T00:00:00'));
+    const text = `Вы придёте на ${roomName} ${dateDisplay} в ${timeSlot}?`;
+    shareText(text);
+}
+
 /* ---------- Save logic ---------- */
 function handleSave() {
     if (!modalContext) return;
@@ -273,7 +357,6 @@ function handleSave() {
     const specCount = Math.max(1, parseInt(document.getElementById('input-specialist-count').value) || 1);
     const clientCount = Math.max(1, parseInt(document.getElementById('input-client-count').value) || 1);
 
-    // --- Conflict check for future weeks ---
     const baseDate = new Date(dateStr + 'T00:00:00');
 
     // Check specialist conflicts
@@ -302,14 +385,14 @@ function handleSave() {
         }
     }
 
-    // --- Save current reserve ---
+    // Save current reserve
     const currentReserve = existingReserve
         ? { ...existingReserve, specialistId, clientId, specialistConfirm, clientConfirm }
         : { id: generateUUID(), date: dateStr, timeSlot, roomId, specialistId, clientId, specialistConfirm, clientConfirm };
 
     upsertReserve(currentReserve);
 
-    // --- Replicate specialist to future weeks ---
+    // Replicate specialist to future weeks
     for (let w = 1; w < specCount; w++) {
         const futureDate = formatDateISO(addDays(baseDate, w * 7));
         let futureReserve = findReserve(futureDate, timeSlot, roomId);
@@ -330,7 +413,7 @@ function handleSave() {
         upsertReserve(futureReserve);
     }
 
-    // --- Replicate client to future weeks ---
+    // Replicate client to future weeks
     for (let w = 1; w < clientCount; w++) {
         const futureDate = formatDateISO(addDays(baseDate, w * 7));
         let futureReserve = findReserve(futureDate, timeSlot, roomId);
@@ -366,6 +449,51 @@ function goToNextDay() {
     renderSchedule();
 }
 
+function goToPrevWeek() {
+    currentDate = addDays(currentDate, -7);
+    renderSchedule();
+}
+
+function goToNextWeek() {
+    currentDate = addDays(currentDate, 7);
+    renderSchedule();
+}
+
+function goToToday() {
+    currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    renderSchedule();
+}
+
+/* ---------- Swipe ---------- */
+function initSwipe() {
+    const el = document.getElementById('schedule-main');
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    el.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        startX = t.clientX;
+        startY = t.clientY;
+        tracking = true;
+    }, { passive: true });
+
+    el.addEventListener('touchend', (e) => {
+        if (!tracking) return;
+        tracking = false;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - startX;
+        const dy = t.clientY - startY;
+        if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+        if (dx < 0) {
+            goToNextDay();
+        } else {
+            goToPrevDay();
+        }
+    }, { passive: true });
+}
+
 /* ---------- Init ---------- */
 async function init() {
     try {
@@ -382,14 +510,19 @@ async function init() {
     // Bind events
     document.getElementById('btn-prev-day').addEventListener('click', goToPrevDay);
     document.getElementById('btn-next-day').addEventListener('click', goToNextDay);
+    document.getElementById('btn-prev-week').addEventListener('click', goToPrevWeek);
+    document.getElementById('btn-next-week').addEventListener('click', goToNextWeek);
+    document.getElementById('btn-today').addEventListener('click', goToToday);
     document.getElementById('btn-reserve-save').addEventListener('click', handleSave);
     document.getElementById('btn-reserve-cancel').addEventListener('click', closeReserveModal);
+    document.getElementById('btn-share-specialist').addEventListener('click', handleShareSpecialist);
+    document.getElementById('btn-share-client').addEventListener('click', handleShareClient);
 
-    // Close modal on overlay click
     document.getElementById('reserve-modal').addEventListener('click', (e) => {
         if (e.target.id === 'reserve-modal') closeReserveModal();
     });
 
+    initSwipe();
     renderSchedule();
 }
 
