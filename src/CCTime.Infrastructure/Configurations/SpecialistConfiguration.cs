@@ -14,5 +14,6 @@ public class SpecialistConfiguration : IEntityTypeConfiguration<Specialist>
         builder.Property(e => e.Id).HasColumnName("id");
         builder.Property(e => e.Name).HasColumnName("name").IsRequired();
         builder.Property(e => e.OrderIndex).HasColumnName("order_index").HasDefaultValue(0);
+        builder.Property(e => e.IsArchived).HasColumnName("is_archived").HasDefaultValue(false);
     }
 }

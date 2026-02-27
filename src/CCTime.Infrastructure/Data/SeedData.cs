@@ -8,15 +8,11 @@ public static class SeedData
     public static void Apply(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Specialist>().HasData(
-            new Specialist { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Name = "-", OrderIndex = 0 },
-            new Specialist { Id = Guid.Parse("a1b2c3d4-0001-0000-0000-000000000001"), Name = "Специалист1", OrderIndex = 1 },
-            new Specialist { Id = Guid.Parse("a1b2c3d4-0001-0000-0000-000000000002"), Name = "Специалист2", OrderIndex = 2 }
+            new Specialist { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Name = "-", OrderIndex = 0, IsArchived = false }
         );
 
         modelBuilder.Entity<Client>().HasData(
-            new Client { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Name = "-", OrderIndex = 0 },
-            new Client { Id = Guid.Parse("b2c3d4e5-0002-0000-0000-000000000001"), Name = "Клиент1", OrderIndex = 1 },
-            new Client { Id = Guid.Parse("b2c3d4e5-0002-0000-0000-000000000003"), Name = "Клиент2", OrderIndex = 2 }
+            new Client { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Name = "-", OrderIndex = 0, IsArchived = false }
         );
 
         modelBuilder.Entity<Room>().HasData(

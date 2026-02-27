@@ -14,11 +14,13 @@ specialists:
 - id (UUID)
 - name
 - order_index (INTEGER, NOT NULL, default 0)
+- is_archived (BOOLEAN, NOT NULL, default false)
 
 clients:
 - id (UUID)
 - name
 - order_index (INTEGER, NOT NULL, default 0)
+- is_archived (BOOLEAN, NOT NULL, default false)
 
 rooms:
 - id (UUID)
@@ -33,8 +35,8 @@ time_slots:
 
 reserves:
 - id (UUID)
-- client_id (UUID, NOT NULL, default Guid.Empty)
-- specialist_id (UUID, NOT NULL, default Guid.Empty)
+- client_id (UUID, NOT NULL, default `00000000-0000-0000-0000-000000000001`)
+- specialist_id (UUID, NOT NULL, default `00000000-0000-0000-0000-000000000001`)
 - room_id (UUID, NOT NULL)
 - date (DATE, NOT NULL)
 - time_slot_id (UUID, NOT NULL)
@@ -48,8 +50,8 @@ reserves:
 ## GetReferencesQuery
 
 в конфигурации передаются сразу все значения без фильтрации
-- specialists
-- clients
+- specialists (только не архивные, `is_archived = false`)
+- clients (только не архивные, `is_archived = false`)
 - rooms
 - timeSlots
 
@@ -74,19 +76,31 @@ reserves:
 **Атомарность:** Операция сохранения выполняется в транзакции (all-or-nothing). Если при тиражировании обнаружен конфликт, вся операция откатывается. Ошибка должна содержать достаточно сведений для понимания причины: на какой дате конфликт, кто уже назначен.
 
 
+## GetSpecialists
+
+Возвращает полный список специалистов (включая архивных). Сортировка по `order_index`.
+
+## SaveSpecialist
+
+Создаёт нового специалиста (если `id = null`) или обновляет существующего (если `id` указан). Поля: `name`, `orderIndex`, `isArchived`. При создании генерируется новый UUID.
+
+## GetClients
+
+Возвращает полный список клиентов (включая архивных). Сортировка по `order_index`.
+
+## SaveClient
+
+Создаёт нового клиента (если `id = null`) или обновляет существующего (если `id` указан). Поля: `name`, `orderIndex`, `isArchived`. При создании генерируется новый UUID.
+
 ## Начальное наполнение данными
 
 ```json
 {
     "specialists": [
-        { "id": "00000000-0000-0000-0000-000000000000", "name": "-", "orderIndex": 0 },
-        { "id": "a1b2c3d4-0001-0000-0000-000000000001", "name": "Специалист1", "orderIndex": 1 },
-        { "id": "a1b2c3d4-0001-0000-0000-000000000002", "name": "Специалист2", "orderIndex": 2 }
+        { "id": "00000000-0000-0000-0000-000000000001", "name": "-", "orderIndex": 0, "isArchived": false }
     ],
     "clients": [
-        { "id": "00000000-0000-0000-0000-000000000000", "name": "-", "orderIndex": 0 },
-        { "id": "b2c3d4e5-0002-0000-0000-000000000001", "name": "Клиент1", "orderIndex": 1 },
-        { "id": "b2c3d4e5-0002-0000-0000-000000000003", "name": "Клиент2", "orderIndex": 2 }
+        { "id": "00000000-0000-0000-0000-000000000001", "name": "-", "orderIndex": 0, "isArchived": false }
     ],
     "rooms": [
         { "id": "c3d4e5f6-0003-0000-0000-000000000001", "name": "ЛОГО", "orderIndex": 1 },

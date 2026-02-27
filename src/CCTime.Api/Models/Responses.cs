@@ -26,3 +26,11 @@ public record GetReservesForDateResult(List<ReserveDto> Reserves);
 public record ErrorDto(string Code, string Message);
 
 public record SaveReserveResult(Guid? Id, List<ErrorDto> Errors);
+
+public record SpecialistItem(Guid Id, string Name, int OrderIndex, bool IsArchived);
+public record GetSpecialistsResult(List<SpecialistItem> Specialists);
+public record SaveSpecialistResult(Guid? Id, List<ErrorDto> Errors);
+
+public record ClientItem(Guid Id, string Name, int OrderIndex, bool IsArchived);
+public record GetClientsResult(List<ClientItem> Clients);
+public record SaveClientResult(Guid? Id, List<ErrorDto> Errors);

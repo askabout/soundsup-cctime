@@ -12,8 +12,8 @@ public class ReserveConfiguration : IEntityTypeConfiguration<Reserve>
 
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).HasColumnName("id");
-        builder.Property(e => e.ClientId).HasColumnName("client_id").HasDefaultValue(Guid.Empty);
-        builder.Property(e => e.SpecialistId).HasColumnName("specialist_id").HasDefaultValue(Guid.Empty);
+        builder.Property(e => e.ClientId).HasColumnName("client_id").HasDefaultValue(CCTime.Domain.Constants.EmptyReferenceId);
+        builder.Property(e => e.SpecialistId).HasColumnName("specialist_id").HasDefaultValue(CCTime.Domain.Constants.EmptyReferenceId);
         builder.Property(e => e.RoomId).HasColumnName("room_id");
         builder.Property(e => e.Date).HasColumnName("date");
         builder.Property(e => e.TimeSlotId).HasColumnName("time_slot_id");

@@ -11,11 +11,13 @@ public static class ReferenceEndpoints
         app.MapPost("/api/references", async (AppDbContext db) =>
         {
             var specialists = await db.Specialists
+                .Where(s => !s.IsArchived)
                 .OrderBy(s => s.OrderIndex)
                 .Select(s => new ReferenceItem(s.Id, s.Name, s.OrderIndex))
                 .ToListAsync();
 
             var clients = await db.Clients
+                .Where(c => !c.IsArchived)
                 .OrderBy(c => c.OrderIndex)
                 .Select(c => new ReferenceItem(c.Id, c.Name, c.OrderIndex))
                 .ToListAsync();

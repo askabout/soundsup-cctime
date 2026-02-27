@@ -20,6 +20,9 @@ GetReferencesQuery:
 ```
 
 GetReferencesQueryResult:
+
+> Возвращает только не архивных специалистов и клиентов (`isArchived = false`). Используется на странице расписания для выпадающих списков в резервациях.
+
 ```json
 {
     "specialists": [
@@ -98,3 +101,97 @@ SaveReserveCommandResult:
 
 - `id` — UUID созданного/обновлённого резерва при успехе. При ошибке: null если это было создание, UUID редактируемого резерва если это было редактирование.
 - `errors` — пустой массив при успехе, список ошибок при неудаче (например, конфликты тиражирования).
+
+## GetSpecialists
+
+GetSpecialistsQuery:
+```json
+{}
+```
+
+GetSpecialistsQueryResult:
+
+> Возвращает полный список специалистов, включая архивных. Используется на странице управления специалистами.
+
+```json
+{
+    "specialists": [
+        { "id": "UUID", "name": "string", "orderIndex": 0, "isArchived": false }
+    ]
+}
+```
+
+## SaveSpecialist
+
+SaveSpecialistCommand:
+```json
+{
+    "id": "UUID | null",
+    "name": "string",
+    "orderIndex": 0,
+    "isArchived": false
+}
+```
+
+SaveSpecialistCommandResult:
+```json
+{
+    "id": "UUID",
+    "errors": [
+        {
+            "code": "string",
+            "message": "string"
+        }
+    ]
+}
+```
+
+- `id` — UUID созданного/обновлённого специалиста при успехе. При создании (`id = null` в запросе) возвращается сгенерированный UUID.
+- `errors` — пустой массив при успехе.
+
+## GetClients
+
+GetClientsQuery:
+```json
+{}
+```
+
+GetClientsQueryResult:
+
+> Возвращает полный список клиентов, включая архивных. Используется на странице управления клиентами.
+
+```json
+{
+    "clients": [
+        { "id": "UUID", "name": "string", "orderIndex": 0, "isArchived": false }
+    ]
+}
+```
+
+## SaveClient
+
+SaveClientCommand:
+```json
+{
+    "id": "UUID | null",
+    "name": "string",
+    "orderIndex": 0,
+    "isArchived": false
+}
+```
+
+SaveClientCommandResult:
+```json
+{
+    "id": "UUID",
+    "errors": [
+        {
+            "code": "string",
+            "message": "string"
+        }
+    ]
+}
+```
+
+- `id` — UUID созданного/обновлённого клиента при успехе. При создании (`id = null` в запросе) возвращается сгенерированный UUID.
+- `errors` — пустой массив при успехе.

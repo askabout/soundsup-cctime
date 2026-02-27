@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CCTime — Специалисты</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="specialists-page" class="directory-page">
+
+        <header id="specialists-header" class="directory-header">
+            <h1>Специалисты</h1>
+            <button id="btn-add-specialist" class="btn-add" type="button">Добавить</button>
+        </header>
+
+        <div id="specialists-list" class="directory-list">
+            <!-- Генерируется из JS -->
+        </div>
+
+        <footer id="specialists-footer" class="directory-footer">
+            <a id="footer-link-schedule" href="index.html">Расписание</a>
+        </footer>
+
+    </div>
+
+    <!-- Popup редактирования специалиста -->
+    <div id="specialist-modal" class="modal-overlay directory-modal hidden">
+        <div class="modal-content">
+            <h2 id="specialist-modal-title">Специалист</h2>
+
+            <div class="form-group">
+                <label for="input-specialist-name">Имя</label>
+                <input id="input-specialist-name" type="text" placeholder="Имя специалиста">
+            </div>
+            <div class="form-group">
+                <label for="input-specialist-order">Порядок отображения</label>
+                <input id="input-specialist-order" type="number" min="0" value="0">
+            </div>
+            <div class="form-group form-check">
+                <input id="check-specialist-archived" type="checkbox">
+                <label for="check-specialist-archived">Архивный</label>
+            </div>
+
+            <div id="specialist-modal-errors" class="modal-errors hidden"></div>
+
+            <div class="modal-buttons">
+                <button id="btn-specialist-save" class="btn-save" type="button">Сохранить</button>
+                <button id="btn-specialist-cancel" class="btn-cancel" type="button">Отменить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="specialists.js"></script>
+</body>
+</html>

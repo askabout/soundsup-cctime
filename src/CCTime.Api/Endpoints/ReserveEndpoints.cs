@@ -97,7 +97,7 @@ public static class ReserveEndpoints
                 }
 
                 // 2. Replicate specialist to future weeks
-                if (command.SpecialistRepeats > 1 && command.SpecialistId != Guid.Empty)
+                if (command.SpecialistRepeats > 1 && command.SpecialistId != CCTime.Domain.Constants.EmptyReferenceId)
                 {
                     for (int w = 1; w < command.SpecialistRepeats; w++)
                     {
@@ -108,7 +108,7 @@ public static class ReserveEndpoints
                         if (futureReserve != null)
                         {
                             // Conflict check: different specialist already assigned
-                            if (futureReserve.SpecialistId != command.SpecialistId && futureReserve.SpecialistId != Guid.Empty)
+                            if (futureReserve.SpecialistId != command.SpecialistId && futureReserve.SpecialistId != CCTime.Domain.Constants.EmptyReferenceId)
                             {
                                 var conflictSpec = await db.Specialists.FindAsync(futureReserve.SpecialistId);
                                 var conflictName = conflictSpec?.Name ?? "неизвестный";
@@ -135,7 +135,7 @@ public static class ReserveEndpoints
                                 TimeSlotId = command.TimeSlotId,
                                 RoomId = command.RoomId,
                                 SpecialistId = command.SpecialistId,
-                                ClientId = Guid.Empty,
+                                ClientId = CCTime.Domain.Constants.EmptyReferenceId,
                                 SpecialistConfirmed = false,
                                 ClientConfirmed = false
                             });
@@ -144,7 +144,7 @@ public static class ReserveEndpoints
                 }
 
                 // 3. Replicate client to future weeks
-                if (command.ClientRepeats > 1 && command.ClientId != Guid.Empty)
+                if (command.ClientRepeats > 1 && command.ClientId != CCTime.Domain.Constants.EmptyReferenceId)
                 {
                     for (int w = 1; w < command.ClientRepeats; w++)
                     {
@@ -155,7 +155,7 @@ public static class ReserveEndpoints
                         if (futureReserve != null)
                         {
                             // Conflict check: different client already assigned
-                            if (futureReserve.ClientId != command.ClientId && futureReserve.ClientId != Guid.Empty)
+                            if (futureReserve.ClientId != command.ClientId && futureReserve.ClientId != CCTime.Domain.Constants.EmptyReferenceId)
                             {
                                 var conflictClient = await db.Clients.FindAsync(futureReserve.ClientId);
                                 var conflictName = conflictClient?.Name ?? "неизвестный";
@@ -181,7 +181,7 @@ public static class ReserveEndpoints
                                 Date = futureDate,
                                 TimeSlotId = command.TimeSlotId,
                                 RoomId = command.RoomId,
-                                SpecialistId = Guid.Empty,
+                                SpecialistId = CCTime.Domain.Constants.EmptyReferenceId,
                                 ClientId = command.ClientId,
                                 SpecialistConfirmed = false,
                                 ClientConfirmed = false

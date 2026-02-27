@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CCTime.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,8 @@ namespace CCTime.Infrastructure.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false),
-                    order_index = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                    order_index = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    is_archived = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -45,7 +46,8 @@ namespace CCTime.Infrastructure.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false),
-                    order_index = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                    order_index = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    is_archived = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -71,8 +73,8 @@ namespace CCTime.Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    client_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValue: new Guid("00000000-0000-0000-0000-000000000000")),
-                    specialist_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValue: new Guid("00000000-0000-0000-0000-000000000000")),
+                    client_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValue: new Guid("00000000-0000-0000-0000-000000000001")),
+                    specialist_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValue: new Guid("00000000-0000-0000-0000-000000000001")),
                     room_id = table.Column<Guid>(type: "uuid", nullable: false),
                     date = table.Column<DateOnly>(type: "date", nullable: false),
                     time_slot_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -114,15 +116,6 @@ namespace CCTime.Infrastructure.Migrations
                 values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "-" });
 
             migrationBuilder.InsertData(
-                table: "clients",
-                columns: new[] { "id", "name", "order_index" },
-                values: new object[,]
-                {
-                    { new Guid("b2c3d4e5-0002-0000-0000-000000000001"), "Клиент1", 1 },
-                    { new Guid("b2c3d4e5-0002-0000-0000-000000000003"), "Клиент2", 2 }
-                });
-
-            migrationBuilder.InsertData(
                 table: "rooms",
                 columns: new[] { "id", "name", "order_index" },
                 values: new object[,]
@@ -135,15 +128,6 @@ namespace CCTime.Infrastructure.Migrations
                 table: "specialists",
                 columns: new[] { "id", "name" },
                 values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "-" });
-
-            migrationBuilder.InsertData(
-                table: "specialists",
-                columns: new[] { "id", "name", "order_index" },
-                values: new object[,]
-                {
-                    { new Guid("a1b2c3d4-0001-0000-0000-000000000001"), "Специалист1", 1 },
-                    { new Guid("a1b2c3d4-0001-0000-0000-000000000002"), "Специалист2", 2 }
-                });
 
             migrationBuilder.InsertData(
                 table: "time_slots",

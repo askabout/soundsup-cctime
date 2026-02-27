@@ -6,5 +6,7 @@ public static class EndpointExtensions
     {
         app.MapReferenceEndpoints();
         app.MapReserveEndpoints();
+        app.MapSpecialistEndpoints();
+        app.MapClientEndpoints();
     }
 }

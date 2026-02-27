@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CCTime.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260227120325_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260227203247_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,12 @@ namespace CCTime.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<bool>("IsArchived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_archived");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -51,20 +57,9 @@ namespace CCTime.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            IsArchived = false,
                             Name = "-",
                             OrderIndex = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("b2c3d4e5-0002-0000-0000-000000000001"),
-                            Name = "Клиент1",
-                            OrderIndex = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("b2c3d4e5-0002-0000-0000-000000000003"),
-                            Name = "Клиент2",
-                            OrderIndex = 2
                         });
                 });
 
@@ -84,7 +79,7 @@ namespace CCTime.Infrastructure.Migrations
                     b.Property<Guid>("ClientId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasDefaultValue(new Guid("00000000-0000-0000-0000-000000000000"))
+                        .HasDefaultValue(new Guid("00000000-0000-0000-0000-000000000001"))
                         .HasColumnName("client_id");
 
                     b.Property<DateOnly>("Date")
@@ -104,7 +99,7 @@ namespace CCTime.Infrastructure.Migrations
                     b.Property<Guid>("SpecialistId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasDefaultValue(new Guid("00000000-0000-0000-0000-000000000000"))
+                        .HasDefaultValue(new Guid("00000000-0000-0000-0000-000000000001"))
                         .HasColumnName("specialist_id");
 
                     b.Property<Guid>("TimeSlotId")
@@ -171,6 +166,12 @@ namespace CCTime.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<bool>("IsArchived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_archived");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -190,20 +191,9 @@ namespace CCTime.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            IsArchived = false,
                             Name = "-",
                             OrderIndex = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("a1b2c3d4-0001-0000-0000-000000000001"),
-                            Name = "Специалист1",
-                            OrderIndex = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("a1b2c3d4-0001-0000-0000-000000000002"),
-                            Name = "Специалист2",
-                            OrderIndex = 2
                         });
                 });
 
