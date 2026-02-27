@@ -6,21 +6,24 @@
 }
 
 :root {
-    --color-primary: #7c5cbf;
-    --color-primary-light: #ebe4f5;
-    --color-bg: #faf8ff;
+    --color-primary: #20686c;
+    --color-primary-light: #d6efed;
+    --color-bg: #f7faf9;
     --color-white: #ffffff;
-    --color-text: #333;
-    --color-text-light: #777;
-    --color-break: #fff3e0;
-    --color-break-text: #bf8040;
-    --color-past: #f0eded;
-    --color-past-text: #aaa;
-    --color-border: #e0dce8;
+    --color-text: #2a3a38;
+    --color-text-light: #6b7e7a;
+    --color-break: #fff1e0;
+    --color-break-text: #bc4f07;
+    --color-past: #eef0ef;
+    --color-past-text: #a0aba8;
+    --color-border: #c8dbd7;
     --color-danger: #e57373;
-    --color-success: #c8e6c9;
-    --color-success-dark: #66bb6a;
-    --color-error: #d32f2f;
+    --color-success: #d4f0e4;
+    --color-success-dark: #005236;
+    --color-error: #bc4f07;
+    --color-accent: #6bc4a6;
+    --color-accent-dark: #005236;
+    --color-warning: #fe982a;
     --header-height: auto;
     --footer-height: 36px;
     --radius: 8px;
@@ -254,15 +257,15 @@ body {
 }
 
 .cell-reserve.both-confirmed .specialist-name {
-    color: #2e7d32;
+    color: #005236;
 }
 
 .cell-reserve.both-confirmed .client-name {
-    color: #388e3c;
+    color: #20686c;
 }
 
 .cell-reserve.both-confirmed:active {
-    background: #a5d6a7;
+    background: #6bc4a6;
 }
 
 /* Перерыв */
@@ -298,12 +301,12 @@ body {
 }
 
 .cell-reserve.past.both-confirmed {
-    background: #dcedc8;
+    background: #d6efed;
 }
 
 .cell-reserve.past.both-confirmed .specialist-name,
 .cell-reserve.past.both-confirmed .client-name {
-    color: #7da67d;
+    color: #6b7e7a;
 }
 
 .cell-time.past {
@@ -488,7 +491,7 @@ body {
 }
 
 .directory-modal .btn-save:active {
-    background: #6a4bab;
+    background: #005236;
 }
 
 .directory-modal .btn-cancel {
@@ -617,9 +620,9 @@ body {
 
 /* Ошибки в модалке */
 .modal-errors {
-    background: #fde8e8;
+    background: #fff1e0;
     color: var(--color-error);
-    border: 1px solid #f5c6c6;
+    border: 1px solid #fdd5a8;
     border-radius: var(--radius);
     padding: 10px 12px;
     margin-top: 12px;
@@ -654,7 +657,7 @@ body {
 }
 
 #btn-reserve-save:active {
-    background: #6a4bab;
+    background: #005236;
 }
 
 #btn-reserve-cancel {
