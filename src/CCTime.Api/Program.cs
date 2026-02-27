@@ -1,3 +1,8 @@
+using CCTime.Infrastructure.Data;
+using CCTime.Api.Endpoints;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>

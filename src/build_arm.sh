@@ -1,0 +1,1 @@
+docker build -f CCTime.Api/Dockerfile .  --network=host -t src-api_20260227:latest --platform linux/arm64
