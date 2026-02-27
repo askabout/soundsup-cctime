@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: cctime
+      POSTGRES_USER: cctime
+      POSTGRES_PASSWORD: cctime
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: CCTime.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cctime;Username=cctime;Password=cctime"
+      ASPNETCORE_ENVIRONMENT: Production
+    depends_on:
+      - postgres

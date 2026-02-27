@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet sln CCTime.slnx add CCTime.Domain/CCTime.Domain.csproj CCTime.Infrastructure/CCTime.Infrastructure.csproj CCTime.Api/CCTime.Api.csproj)",
+      "Bash(dotnet build CCTime.slnx)"
+    ]
+  }
+}

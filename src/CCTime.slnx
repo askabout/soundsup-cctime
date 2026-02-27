@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="CCTime.Api/CCTime.Api.csproj" />
+  <Project Path="CCTime.Domain/CCTime.Domain.csproj" />
+  <Project Path="CCTime.Infrastructure/CCTime.Infrastructure.csproj" />
+</Solution>
