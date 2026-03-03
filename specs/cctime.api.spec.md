@@ -82,7 +82,8 @@ SaveReserveCommand:
     "clientRepeats": 0,
     "specialistId": "UUID",
     "specialistConfirmed": false,
-    "specialistRepeats": 0
+    "specialistRepeats": 0,
+    "forceOverwrite": false
 }
 ```
 
@@ -101,6 +102,7 @@ SaveReserveCommandResult:
 
 - `id` — UUID созданного/обновлённого резерва при успехе. При ошибке: null если это было создание, UUID редактируемого резерва если это было редактирование.
 - `errors` — пустой массив при успехе, список ошибок при неудаче (например, конфликты тиражирования).
+- `forceOverwrite` — если `true`, конфликты при тиражировании игнорируются и значения перезаписываются принудительно. По умолчанию `false`.
 
 ## GetSpecialists
 

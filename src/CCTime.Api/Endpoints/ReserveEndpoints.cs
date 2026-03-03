@@ -109,14 +109,14 @@ public static class ReserveEndpoints
                 }
 
                 // 3. Replicate specialist to future weeks
-                if (command.SpecialistRepeats > 1 && command.SpecialistId != emptyId)
+                if (command.SpecialistRepeats > 1)
                 {
                     for (int w = 1; w < command.SpecialistRepeats; w++)
                     {
                         var futureDate = date.AddDays(w * 7);
                         var reserve = GetOrCreate(futureDate);
 
-                        if (reserve.SpecialistId != command.SpecialistId && reserve.SpecialistId != emptyId)
+                        if (!command.ForceOverwrite && reserve.SpecialistId != command.SpecialistId && reserve.SpecialistId != emptyId)
                         {
                             var conflictSpec = await db.Specialists.FindAsync(reserve.SpecialistId);
                             await transaction.RollbackAsync();
@@ -136,14 +136,14 @@ public static class ReserveEndpoints
                 }
 
                 // 4. Replicate client to future weeks
-                if (command.ClientRepeats > 1 && command.ClientId != emptyId)
+                if (command.ClientRepeats > 1)
                 {
                     for (int w = 1; w < command.ClientRepeats; w++)
                     {
                         var futureDate = date.AddDays(w * 7);
                         var reserve = GetOrCreate(futureDate);
 
-                        if (reserve.ClientId != command.ClientId && reserve.ClientId != emptyId)
+                        if (!command.ForceOverwrite && reserve.ClientId != command.ClientId && reserve.ClientId != emptyId)
                         {
                             var conflictClient = await db.Clients.FindAsync(reserve.ClientId);
                             await transaction.RollbackAsync();

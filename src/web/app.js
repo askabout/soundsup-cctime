@@ -292,12 +292,23 @@ function showErrors(errors) {
     const el = document.getElementById('reserve-modal-errors');
     el.innerHTML = errors.map(e => e.message).join('<br>');
     el.classList.remove('hidden');
+
+    const hasConflict = errors.some(e => e.code === 'CONFLICT_SPECIALIST' || e.code === 'CONFLICT_CLIENT');
+    const overwriteEl = document.getElementById('reserve-modal-overwrite');
+    if (hasConflict) {
+        overwriteEl.classList.remove('hidden');
+    } else {
+        overwriteEl.classList.add('hidden');
+        document.getElementById('check-force-overwrite').checked = false;
+    }
 }
 
 function hideErrors() {
     const el = document.getElementById('reserve-modal-errors');
     el.innerHTML = '';
     el.classList.add('hidden');
+    document.getElementById('reserve-modal-overwrite').classList.add('hidden');
+    document.getElementById('check-force-overwrite').checked = false;
 }
 
 /* ---------- Share (Web Share API) ---------- */
@@ -379,7 +390,8 @@ async function handleSave() {
         specialistRepeats: Math.max(1, parseInt(document.getElementById('input-specialist-count').value) || 1),
         clientId: document.getElementById('select-client').value,
         clientConfirmed: document.getElementById('check-client-confirm').checked,
-        clientRepeats: Math.max(1, parseInt(document.getElementById('input-client-count').value) || 1)
+        clientRepeats: Math.max(1, parseInt(document.getElementById('input-client-count').value) || 1),
+        forceOverwrite: document.getElementById('check-force-overwrite').checked
     };
 
     try {
@@ -480,10 +492,6 @@ async function init() {
     document.getElementById('btn-reserve-cancel').addEventListener('click', closeReserveModal);
     document.getElementById('btn-share-specialist').addEventListener('click', handleShareSpecialist);
     document.getElementById('btn-share-client').addEventListener('click', handleShareClient);
-
-    document.getElementById('reserve-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'reserve-modal') closeReserveModal();
-    });
 
     initSwipe();
     renderSchedule();
