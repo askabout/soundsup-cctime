@@ -48,11 +48,46 @@ public static class ReserveEndpoints
 
             var date = DateOnly.Parse(command.Date);
             var isEdit = command.Id.HasValue;
+            var emptyId = CCTime.Domain.Constants.EmptyReferenceId;
 
             await using var transaction = await db.Database.BeginTransactionAsync();
             try
             {
-                // 1. Create or update main reserve
+                // 1. Pre-load all reserves we may need (current + future weeks)
+                var maxRepeats = Math.Max(command.SpecialistRepeats, command.ClientRepeats);
+                var futureDates = Enumerable.Range(0, maxRepeats)
+                    .Select(w => date.AddDays(w * 7))
+                    .ToList();
+
+                var existingReserves = await db.Reserves
+                    .Where(r => futureDates.Contains(r.Date)
+                                && r.TimeSlotId == command.TimeSlotId
+                                && r.RoomId == command.RoomId)
+                    .ToDictionaryAsync(r => r.Date);
+
+                // Helper: get or create reserve for a given date
+                Reserve GetOrCreate(DateOnly d)
+                {
+                    if (existingReserves.TryGetValue(d, out var r))
+                        return r;
+
+                    r = new Reserve
+                    {
+                        Id = Guid.NewGuid(),
+                        Date = d,
+                        TimeSlotId = command.TimeSlotId,
+                        RoomId = command.RoomId,
+                        SpecialistId = emptyId,
+                        ClientId = emptyId,
+                        SpecialistConfirmed = false,
+                        ClientConfirmed = false
+                    };
+                    db.Reserves.Add(r);
+                    existingReserves[d] = r;
+                    return r;
+                }
+
+                // 2. Main reserve (week 0)
                 Reserve mainReserve;
                 if (isEdit)
                 {
@@ -66,127 +101,64 @@ public static class ReserveEndpoints
                 }
                 else
                 {
-                    // Check unique constraint before insert
-                    var existing = await db.Reserves.FirstOrDefaultAsync(r =>
-                        r.Date == date && r.TimeSlotId == command.TimeSlotId && r.RoomId == command.RoomId);
-
-                    if (existing != null)
-                    {
-                        // Update existing instead of inserting duplicate
-                        existing.ClientId = command.ClientId;
-                        existing.SpecialistId = command.SpecialistId;
-                        existing.ClientConfirmed = command.ClientConfirmed;
-                        existing.SpecialistConfirmed = command.SpecialistConfirmed;
-                        mainReserve = existing;
-                    }
-                    else
-                    {
-                        mainReserve = new Reserve
-                        {
-                            Id = Guid.NewGuid(),
-                            Date = date,
-                            TimeSlotId = command.TimeSlotId,
-                            RoomId = command.RoomId,
-                            ClientId = command.ClientId,
-                            SpecialistId = command.SpecialistId,
-                            ClientConfirmed = command.ClientConfirmed,
-                            SpecialistConfirmed = command.SpecialistConfirmed
-                        };
-                        db.Reserves.Add(mainReserve);
-                    }
+                    mainReserve = GetOrCreate(date);
+                    mainReserve.ClientId = command.ClientId;
+                    mainReserve.SpecialistId = command.SpecialistId;
+                    mainReserve.ClientConfirmed = command.ClientConfirmed;
+                    mainReserve.SpecialistConfirmed = command.SpecialistConfirmed;
                 }
 
-                // 2. Replicate specialist to future weeks
-                if (command.SpecialistRepeats > 1 && command.SpecialistId != CCTime.Domain.Constants.EmptyReferenceId)
+                // 3. Replicate specialist to future weeks
+                if (command.SpecialistRepeats > 1 && command.SpecialistId != emptyId)
                 {
                     for (int w = 1; w < command.SpecialistRepeats; w++)
                     {
                         var futureDate = date.AddDays(w * 7);
-                        var futureReserve = await db.Reserves.FirstOrDefaultAsync(r =>
-                            r.Date == futureDate && r.TimeSlotId == command.TimeSlotId && r.RoomId == command.RoomId);
+                        var reserve = GetOrCreate(futureDate);
 
-                        if (futureReserve != null)
+                        if (reserve.SpecialistId != command.SpecialistId && reserve.SpecialistId != emptyId)
                         {
-                            // Conflict check: different specialist already assigned
-                            if (futureReserve.SpecialistId != command.SpecialistId && futureReserve.SpecialistId != CCTime.Domain.Constants.EmptyReferenceId)
-                            {
-                                var conflictSpec = await db.Specialists.FindAsync(futureReserve.SpecialistId);
-                                var conflictName = conflictSpec?.Name ?? "неизвестный";
-                                await transaction.RollbackAsync();
-                                return Results.Ok(new SaveReserveResult(
-                                    command.Id,
-                                    new List<ErrorDto>
-                                    {
-                                        new("CONFLICT_SPECIALIST",
-                                            $"Конфликт специалиста на {futureDate:yyyy-MM-dd}: уже назначен \"{conflictName}\"")
-                                    }
-                                ));
-                            }
+                            var conflictSpec = await db.Specialists.FindAsync(reserve.SpecialistId);
+                            await transaction.RollbackAsync();
+                            return Results.Ok(new SaveReserveResult(
+                                command.Id,
+                                new List<ErrorDto>
+                                {
+                                    new("CONFLICT_SPECIALIST",
+                                        $"Конфликт специалиста на {futureDate:yyyy-MM-dd}: уже назначен \"{conflictSpec?.Name ?? "неизвестный"}\"")
+                                }
+                            ));
+                        }
 
-                            futureReserve.SpecialistId = command.SpecialistId;
-                            futureReserve.SpecialistConfirmed = false;
-                        }
-                        else
-                        {
-                            db.Reserves.Add(new Reserve
-                            {
-                                Id = Guid.NewGuid(),
-                                Date = futureDate,
-                                TimeSlotId = command.TimeSlotId,
-                                RoomId = command.RoomId,
-                                SpecialistId = command.SpecialistId,
-                                ClientId = CCTime.Domain.Constants.EmptyReferenceId,
-                                SpecialistConfirmed = false,
-                                ClientConfirmed = false
-                            });
-                        }
+                        reserve.SpecialistId = command.SpecialistId;
+                        reserve.SpecialistConfirmed = false;
                     }
                 }
 
-                // 3. Replicate client to future weeks
-                if (command.ClientRepeats > 1 && command.ClientId != CCTime.Domain.Constants.EmptyReferenceId)
+                // 4. Replicate client to future weeks
+                if (command.ClientRepeats > 1 && command.ClientId != emptyId)
                 {
                     for (int w = 1; w < command.ClientRepeats; w++)
                     {
                         var futureDate = date.AddDays(w * 7);
-                        var futureReserve = await db.Reserves.FirstOrDefaultAsync(r =>
-                            r.Date == futureDate && r.TimeSlotId == command.TimeSlotId && r.RoomId == command.RoomId);
+                        var reserve = GetOrCreate(futureDate);
 
-                        if (futureReserve != null)
+                        if (reserve.ClientId != command.ClientId && reserve.ClientId != emptyId)
                         {
-                            // Conflict check: different client already assigned
-                            if (futureReserve.ClientId != command.ClientId && futureReserve.ClientId != CCTime.Domain.Constants.EmptyReferenceId)
-                            {
-                                var conflictClient = await db.Clients.FindAsync(futureReserve.ClientId);
-                                var conflictName = conflictClient?.Name ?? "неизвестный";
-                                await transaction.RollbackAsync();
-                                return Results.Ok(new SaveReserveResult(
-                                    command.Id,
-                                    new List<ErrorDto>
-                                    {
-                                        new("CONFLICT_CLIENT",
-                                            $"Конфликт клиента на {futureDate:yyyy-MM-dd}: уже назначен \"{conflictName}\"")
-                                    }
-                                ));
-                            }
+                            var conflictClient = await db.Clients.FindAsync(reserve.ClientId);
+                            await transaction.RollbackAsync();
+                            return Results.Ok(new SaveReserveResult(
+                                command.Id,
+                                new List<ErrorDto>
+                                {
+                                    new("CONFLICT_CLIENT",
+                                        $"Конфликт клиента на {futureDate:yyyy-MM-dd}: уже назначен \"{conflictClient?.Name ?? "неизвестный"}\"")
+                                }
+                            ));
+                        }
 
-                            futureReserve.ClientId = command.ClientId;
-                            futureReserve.ClientConfirmed = false;
-                        }
-                        else
-                        {
-                            db.Reserves.Add(new Reserve
-                            {
-                                Id = Guid.NewGuid(),
-                                Date = futureDate,
-                                TimeSlotId = command.TimeSlotId,
-                                RoomId = command.RoomId,
-                                SpecialistId = CCTime.Domain.Constants.EmptyReferenceId,
-                                ClientId = command.ClientId,
-                                SpecialistConfirmed = false,
-                                ClientConfirmed = false
-                            });
-                        }
+                        reserve.ClientId = command.ClientId;
+                        reserve.ClientConfirmed = false;
                     }
                 }
 
