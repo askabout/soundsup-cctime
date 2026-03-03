@@ -737,6 +737,135 @@ body {
     cursor: pointer;
 }
 
+/* Vertical multi-week: group cell with week sub-blocks */
+.cell-reserve-group {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+    background: var(--color-white);
+}
+
+.cell-reserve-sub {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 2px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+    word-break: break-word;
+    min-height: 38px;
+    flex: 1;
+}
+
+.cell-reserve-sub:not(:last-child) {
+    border-bottom: 1px dashed var(--color-border);
+}
+
+.cell-reserve-sub:active {
+    background: var(--color-primary-light);
+}
+
+.cell-reserve-sub.past {
+    background: var(--color-past);
+}
+
+.cell-reserve-sub.past:active {
+    background: var(--color-past);
+}
+
+.cell-reserve-sub.both-confirmed {
+    background: var(--color-success);
+}
+
+.cell-reserve-sub.both-confirmed:active {
+    background: #6bc4a6;
+}
+
+.cell-reserve-sub.past.both-confirmed {
+    background: #d6efed;
+}
+
+.cell-reserve-sub .sub-date {
+    font-size: 9px;
+    color: var(--color-text-light);
+    line-height: 1;
+    margin-bottom: 1px;
+    display: none; /* temporarily hidden — week column shows dates instead */
+}
+
+.cell-reserve-sub .specialist-name {
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.cell-reserve-sub .client-name {
+    color: var(--color-text-light);
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.cell-reserve-sub.past .specialist-name,
+.cell-reserve-sub.past .client-name {
+    color: var(--color-past-text);
+}
+
+.cell-reserve-sub.past.both-confirmed .specialist-name,
+.cell-reserve-sub.past.both-confirmed .client-name {
+    color: #6b7e7a;
+}
+
+/* Vertical multi-week: week label column */
+.cell-week-group {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+    background: var(--color-primary-light);
+}
+
+.cell-week-sub {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 4px;
+    text-align: center;
+    min-height: 38px;
+    flex: 1;
+    font-size: 10px;
+    color: var(--color-text-light);
+    line-height: 1.3;
+}
+
+.cell-week-sub:not(:last-child) {
+    border-bottom: 1px dashed var(--color-border);
+}
+
+.cell-week-sub.current {
+    background: var(--color-accent);
+    color: var(--color-white);
+}
+
+.cell-week-sub .week-label {
+    font-weight: 700;
+    font-size: 10px;
+}
+
+.cell-week-sub .week-dates {
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+.cell-week-sub.current .week-label,
+.cell-week-sub.current .week-dates {
+    color: var(--color-white);
+}
+
 /* Week separator (thick left border on Monday in multi-week view) */
 .week-separator {
     border-left: 3px solid var(--color-primary) !important;

@@ -12,6 +12,7 @@ let references = null;  // { specialists, clients, rooms, timeSlots }
 let reserves = [];       // array of reserve DTOs for displayed range
 let currentDate = null;  // Date object for displayed day (Monday in multi-day mode)
 let viewDays = 1;        // 1, 7, 14, 21, 28, 35
+let viewMode = 'day';    // 'day', 'horizontal', 'vertical'
 
 /* ---------- Date helpers ---------- */
 function formatDateISO(date) {
@@ -133,7 +134,7 @@ function findReserve(dateStr, timeSlotId, roomId) {
 
 /* ---------- Render header ---------- */
 function renderHeader() {
-    if (viewDays === 1) {
+    if (viewMode === 'day') {
         const { monday, sunday } = getWeekRange(currentDate);
         document.getElementById('header-week-range').textContent =
             `${formatDateShort(monday)} — ${formatDateDisplay(sunday)}`;
@@ -148,10 +149,12 @@ function renderHeader() {
 /* ---------- Render schedule ---------- */
 function renderSchedule() {
     renderHeader();
-    if (viewDays === 1) {
+    if (viewMode === 'day') {
         renderSingleDay();
-    } else {
+    } else if (viewMode === 'horizontal') {
         renderMultiDay();
+    } else {
+        renderVerticalMultiWeek();
     }
 }
 
@@ -365,6 +368,225 @@ function renderMultiDay() {
     });
 }
 
+/* ---------- Vertical multi-week render ---------- */
+function renderVerticalMultiWeek() {
+    document.getElementById('schedule-date-row').style.display = 'none';
+
+    const rooms = references.rooms;
+    const slots = references.timeSlots;
+    const numWeeks = viewDays / 7;
+    const dayCols = 7 * rooms.length;
+    const colWidth = 60;
+
+    const grid = document.getElementById('schedule-grid');
+    grid.innerHTML = '';
+    // Columns: time(56) + week-label(80) + 7 days × rooms
+    grid.style.gridTemplateColumns = `56px 80px repeat(${dayCols}, minmax(${colWidth}px, 1fr))`;
+    grid.style.minWidth = `${56 + 80 + dayCols * colWidth}px`;
+
+    // Build weeks: array of 7-element arrays
+    const weeks = [];
+    for (let w = 0; w < numWeeks; w++) {
+        const weekDates = [];
+        for (let d = 0; d < 7; d++) {
+            const date = addDays(currentDate, w * 7 + d);
+            const dateStr = formatDateISO(date);
+            weekDates.push({ date, dateStr, isPast: isDatePast(dateStr), isToday: isDateToday(dateStr) });
+        }
+        weeks.push(weekDates);
+    }
+
+    // Determine which week is "current" (contains today)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = formatDateISO(today);
+    let currentWeekIdx = -1;
+    for (let w = 0; w < numWeeks; w++) {
+        if (todayStr >= weeks[w][0].dateStr && todayStr <= weeks[w][6].dateStr) {
+            currentWeekIdx = w;
+            break;
+        }
+    }
+
+    function getWeekLabel(w) {
+        if (currentWeekIdx === -1) return '';
+        const diff = w - currentWeekIdx;
+        if (diff === 0) return 'Текущая';
+        if (diff === -1) return 'Пред.';
+        if (diff === 1) return 'След.';
+        return '';
+    }
+
+    // Row 1: Day name headers
+    const cornerDay = document.createElement('div');
+    cornerDay.className = 'cell-date-header cell-corner-sticky';
+    grid.appendChild(cornerDay);
+
+    const weekColHeader = document.createElement('div');
+    weekColHeader.className = 'cell-date-header';
+    weekColHeader.textContent = 'Неделя';
+    grid.appendChild(weekColHeader);
+
+    for (let dow = 0; dow < 7; dow++) {
+        const jsDayIndex = (dow + 1) % 7;
+        const h = document.createElement('div');
+        h.className = 'cell-date-header';
+        h.style.gridColumn = `${3 + dow * rooms.length} / ${3 + (dow + 1) * rooms.length}`;
+        h.textContent = DAY_NAMES_SHORT[jsDayIndex];
+        grid.appendChild(h);
+    }
+
+    // Row 2: Room headers
+    const cornerRoom = document.createElement('div');
+    cornerRoom.className = 'cell-room-header cell-room-corner-sticky';
+    grid.appendChild(cornerRoom);
+
+    const weekColRoom = document.createElement('div');
+    weekColRoom.className = 'cell-room-header';
+    grid.appendChild(weekColRoom);
+
+    for (let dow = 0; dow < 7; dow++) {
+        rooms.forEach((room) => {
+            const h = document.createElement('div');
+            h.className = 'cell-room-header';
+            h.textContent = room.name;
+            grid.appendChild(h);
+        });
+    }
+
+    // Slot rows — each slot is ONE grid row
+    slots.forEach((slot) => {
+        if (slot.type === 'break') {
+            const timeCell = document.createElement('div');
+            timeCell.className = 'cell-break cell-break-time-sticky';
+            timeCell.textContent = slot.name;
+            grid.appendChild(timeCell);
+
+            // Week column break cell
+            const weekBreak = document.createElement('div');
+            weekBreak.className = 'cell-break';
+            grid.appendChild(weekBreak);
+
+            for (let i = 0; i < dayCols; i++) {
+                const bc = document.createElement('div');
+                bc.className = 'cell-break';
+                grid.appendChild(bc);
+            }
+            return;
+        }
+
+        // Time cell (sticky)
+        const timeCell = document.createElement('div');
+        timeCell.className = 'cell-time cell-time-sticky';
+        const timeParts = slot.name.split('-');
+        if (timeParts.length === 2) {
+            const startSpan = document.createElement('span');
+            startSpan.className = 'time-start';
+            startSpan.textContent = timeParts[0];
+            const endSpan = document.createElement('span');
+            endSpan.className = 'time-end';
+            endSpan.textContent = timeParts[1];
+            timeCell.appendChild(startSpan);
+            timeCell.appendChild(endSpan);
+        } else {
+            timeCell.textContent = slot.name;
+        }
+        grid.appendChild(timeCell);
+
+        // Week label column — group with N sub-blocks
+        const weekGroup = document.createElement('div');
+        weekGroup.className = 'cell-week-group';
+
+        for (let w = 0; w < numWeeks; w++) {
+            const weekSub = document.createElement('div');
+            weekSub.className = 'cell-week-sub';
+            if (w === currentWeekIdx) weekSub.classList.add('current');
+
+            const label = getWeekLabel(w);
+            if (label) {
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'week-label';
+                labelSpan.textContent = label;
+                weekSub.appendChild(labelSpan);
+            }
+
+            const datesSpan = document.createElement('span');
+            datesSpan.className = 'week-dates';
+            datesSpan.textContent = `${formatDateShort(weeks[w][0].date)}—${formatDateShort(weeks[w][6].date)}`;
+            weekSub.appendChild(datesSpan);
+
+            weekGroup.appendChild(weekSub);
+        }
+        grid.appendChild(weekGroup);
+
+        // For each day-of-week × room: one group cell with N sub-blocks
+        for (let dow = 0; dow < 7; dow++) {
+            rooms.forEach((room) => {
+                const group = document.createElement('div');
+                group.className = 'cell-reserve-group';
+
+                for (let w = 0; w < numWeeks; w++) {
+                    const day = weeks[w][dow];
+                    const reserve = findReserve(day.dateStr, slot.id, room.id);
+
+                    const sub = document.createElement('div');
+                    sub.className = 'cell-reserve-sub';
+                    if (day.isPast) sub.classList.add('past');
+                    if (reserve && reserve.specialistConfirmed && reserve.clientConfirmed) {
+                        sub.classList.add('both-confirmed');
+                    }
+
+                    // Date label (hidden via CSS, kept for future use)
+                    const dateLabel = document.createElement('span');
+                    dateLabel.className = 'sub-date';
+                    dateLabel.textContent = formatDateShort(day.date);
+                    sub.appendChild(dateLabel);
+
+                    // Specialist
+                    const specSpan = document.createElement('span');
+                    specSpan.className = 'specialist-name';
+                    if (reserve) {
+                        const specName = getSpecialistName(reserve.specialistId);
+                        if (specName && specName !== '-') {
+                            specSpan.textContent = specName;
+                            if (reserve.specialistConfirmed) {
+                                const dot = document.createElement('span');
+                                dot.className = 'confirm-dot';
+                                specSpan.appendChild(dot);
+                            }
+                        }
+                    }
+                    sub.appendChild(specSpan);
+
+                    // Client
+                    const clientSpan = document.createElement('span');
+                    clientSpan.className = 'client-name';
+                    if (reserve) {
+                        const clientName = getClientName(reserve.clientId);
+                        if (clientName && clientName !== '-') {
+                            clientSpan.textContent = clientName;
+                            if (reserve.clientConfirmed) {
+                                const dot = document.createElement('span');
+                                dot.className = 'confirm-dot';
+                                clientSpan.appendChild(dot);
+                            }
+                        }
+                    }
+                    sub.appendChild(clientSpan);
+
+                    sub.addEventListener('click', () => {
+                        openReserveModal(day.dateStr, slot.id, slot.name, room.id, room.name, day.isPast);
+                    });
+
+                    group.appendChild(sub);
+                }
+
+                grid.appendChild(group);
+            });
+        }
+    });
+}
+
 /* ---------- Shared reserve cell renderer ---------- */
 function renderReserveCell(cell, reserve) {
     const specSpan = document.createElement('span');
@@ -574,17 +796,17 @@ async function handleSave() {
 
 /* ---------- Data loading for current view ---------- */
 async function loadCurrentView() {
-    if (viewDays > 1) {
-        await loadReservesForRange(currentDate, viewDays);
-    } else {
+    if (viewMode === 'day') {
         await loadReservesForDate(formatDateISO(currentDate));
+    } else {
+        await loadReservesForRange(currentDate, viewDays);
     }
 }
 
 /* ---------- Navigation ---------- */
 async function navigateToDate(date) {
     currentDate = date;
-    if (viewDays > 1) {
+    if (viewMode !== 'day') {
         currentDate = getMonday(currentDate);
     }
     currentDate.setHours(0, 0, 0, 0);
@@ -592,10 +814,10 @@ async function navigateToDate(date) {
     renderSchedule();
 }
 
-function goToPrevDay() { navigateToDate(addDays(currentDate, viewDays > 1 ? -7 : -1)); }
-function goToNextDay() { navigateToDate(addDays(currentDate, viewDays > 1 ? 7 : 1)); }
-function goToPrevWeek() { navigateToDate(addDays(currentDate, viewDays > 1 ? -28 : -7)); }
-function goToNextWeek() { navigateToDate(addDays(currentDate, viewDays > 1 ? 28 : 7)); }
+function goToPrevDay() { navigateToDate(addDays(currentDate, viewMode === 'horizontal' ? -7 : -1)); }
+function goToNextDay() { navigateToDate(addDays(currentDate, viewMode === 'horizontal' ? 7 : 1)); }
+function goToPrevWeek() { navigateToDate(addDays(currentDate, viewMode === 'horizontal' ? -28 : -7)); }
+function goToNextWeek() { navigateToDate(addDays(currentDate, viewMode === 'horizontal' ? 28 : 7)); }
 
 function goToToday() {
     const today = new Date();
@@ -604,8 +826,15 @@ function goToToday() {
 }
 
 async function handleViewModeChange(e) {
-    viewDays = parseInt(e.target.value) || 1;
-    if (viewDays > 1) {
+    const val = e.target.value;
+    if (val.startsWith('v')) {
+        viewDays = parseInt(val.substring(1));
+        viewMode = 'vertical';
+    } else {
+        viewDays = parseInt(val) || 1;
+        viewMode = viewDays === 1 ? 'day' : 'horizontal';
+    }
+    if (viewMode !== 'day') {
         currentDate = getMonday(currentDate);
     }
     await loadCurrentView();
@@ -620,7 +849,7 @@ function initSwipe() {
     let tracking = false;
 
     el.addEventListener('touchstart', (e) => {
-        if (viewDays > 1) return;
+        if (viewMode !== 'day') return;
         const t = e.touches[0];
         startX = t.clientX;
         startY = t.clientY;
