@@ -215,6 +215,10 @@ body {
     color: var(--color-primary);
     padding: 6px 2px;
     text-align: center;
+    position: sticky;
+    top: var(--room-sticky-top, 0px);
+    z-index: 7;
+    background: var(--color-white);
 }
 
 /* Ячейка резерва */
@@ -686,9 +690,7 @@ body {
 
 /* Sticky time column (multi-day) */
 .cell-time-sticky,
-.cell-break-time-sticky,
-.cell-corner-sticky,
-.cell-room-corner-sticky {
+.cell-break-time-sticky {
     position: sticky;
     left: 0;
     z-index: 5;
@@ -697,6 +699,23 @@ body {
 
 .cell-break-time-sticky {
     background: var(--color-break);
+}
+
+/* Sticky corners (left + top) */
+.cell-corner-sticky {
+    position: sticky;
+    left: 0;
+    top: 0;
+    z-index: 12;
+    background: var(--color-primary-light);
+}
+
+.cell-room-corner-sticky {
+    position: sticky;
+    left: 0;
+    top: var(--room-sticky-top, 0px);
+    z-index: 11;
+    background: var(--color-white);
 }
 
 /* Date header in multi-day grid */
@@ -713,6 +732,9 @@ body {
     border-bottom: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 8;
 }
 
 .cell-date-header.today {
@@ -819,6 +841,31 @@ body {
     color: #6b7e7a;
 }
 
+/* Vertical multi-week: sticky week column (left: 56px, after time column) */
+.cell-week-col-sticky {
+    position: sticky;
+    left: 56px;
+    z-index: 4;
+}
+
+/* Week column in date header row — sticky both left+top */
+.cell-date-header.cell-week-col-sticky {
+    top: 0;
+    z-index: 12;
+}
+
+/* Week column in room header row — sticky both left+top */
+.cell-room-header.cell-week-col-sticky {
+    top: var(--room-sticky-top, 0px);
+    left: 56px;
+    z-index: 11;
+}
+
+/* Week column break cell — sticky left */
+.cell-break.cell-week-col-sticky {
+    background: var(--color-break);
+}
+
 /* Vertical multi-week: week label column */
 .cell-week-group {
     display: flex;
@@ -826,6 +873,9 @@ body {
     border-bottom: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
     background: var(--color-primary-light);
+    position: sticky;
+    left: 56px;
+    z-index: 4;
 }
 
 .cell-week-sub {

@@ -156,6 +156,18 @@ function renderSchedule() {
     } else {
         renderVerticalMultiWeek();
     }
+    updateStickyOffsets();
+}
+
+function updateStickyOffsets() {
+    const main = document.getElementById('schedule-main');
+    if (viewMode === 'day') {
+        const dateRow = document.getElementById('schedule-date-row');
+        main.style.setProperty('--room-sticky-top', dateRow.offsetHeight + 'px');
+    } else {
+        const dateHeader = document.querySelector('.cell-date-header');
+        main.style.setProperty('--room-sticky-top', (dateHeader ? dateHeader.offsetHeight : 28) + 'px');
+    }
 }
 
 /* ---------- Single day render ---------- */
@@ -423,7 +435,7 @@ function renderVerticalMultiWeek() {
     grid.appendChild(cornerDay);
 
     const weekColHeader = document.createElement('div');
-    weekColHeader.className = 'cell-date-header';
+    weekColHeader.className = 'cell-date-header cell-week-col-sticky';
     weekColHeader.textContent = 'Неделя';
     grid.appendChild(weekColHeader);
 
@@ -442,7 +454,7 @@ function renderVerticalMultiWeek() {
     grid.appendChild(cornerRoom);
 
     const weekColRoom = document.createElement('div');
-    weekColRoom.className = 'cell-room-header';
+    weekColRoom.className = 'cell-room-header cell-week-col-sticky';
     grid.appendChild(weekColRoom);
 
     for (let dow = 0; dow < 7; dow++) {
@@ -462,9 +474,9 @@ function renderVerticalMultiWeek() {
             timeCell.textContent = slot.name;
             grid.appendChild(timeCell);
 
-            // Week column break cell
+            // Week column break cell (sticky)
             const weekBreak = document.createElement('div');
-            weekBreak.className = 'cell-break';
+            weekBreak.className = 'cell-break cell-week-col-sticky';
             grid.appendChild(weekBreak);
 
             for (let i = 0; i < dayCols; i++) {
@@ -635,7 +647,8 @@ function openReserveModal(dateStr, timeSlotId, timeSlotName, roomId, roomName, i
     modalContext = { dateStr, timeSlotId, timeSlotName, roomId, roomName, isPast, existingReserve: existing };
 
     document.getElementById('reserve-modal-title').textContent = existing ? 'Редактирование резерва' : 'Новый резерв';
-    document.getElementById('reserve-modal-info').textContent = `${roomName} | ${timeSlotName} | ${formatDateDisplay(new Date(dateStr + 'T00:00:00'))}`;
+    const modalDate = new Date(dateStr + 'T00:00:00');
+    document.getElementById('reserve-modal-info').textContent = `${roomName} | ${timeSlotName} | ${getDayName(modalDate)}, ${formatDateDisplay(modalDate)}`;
 
     populateSelect('select-specialist', references.specialists, existing ? existing.specialistId : GUID_EMPTY);
     populateSelect('select-client', references.clients, existing ? existing.clientId : GUID_EMPTY);
