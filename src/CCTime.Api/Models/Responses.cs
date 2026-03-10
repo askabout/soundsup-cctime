@@ -18,7 +18,8 @@ public record ReserveDto(
     Guid ClientId,
     bool ClientConfirmed,
     Guid SpecialistId,
-    bool SpecialistConfirmed
+    bool SpecialistConfirmed,
+    string? Comment
 );
 
 public record GetReservesForDateResult(List<ReserveDto> Reserves);

@@ -19,6 +19,7 @@ public class ReserveConfiguration : IEntityTypeConfiguration<Reserve>
         builder.Property(e => e.TimeSlotId).HasColumnName("time_slot_id");
         builder.Property(e => e.ClientConfirmed).HasColumnName("client_confirmed").HasDefaultValue(false);
         builder.Property(e => e.SpecialistConfirmed).HasColumnName("specialist_confirmed").HasDefaultValue(false);
+        builder.Property(e => e.Comment).HasColumnName("comment").HasMaxLength(500).IsRequired(false);
 
         builder.HasIndex(e => new { e.Date, e.TimeSlotId, e.RoomId }).IsUnique();
 

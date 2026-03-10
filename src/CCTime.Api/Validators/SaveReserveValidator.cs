@@ -22,5 +22,9 @@ public class SaveReserveValidator : AbstractValidator<SaveReserveCommand>
 
         RuleFor(x => x.SpecialistRepeats)
             .GreaterThanOrEqualTo(1).WithMessage("Количество повторов специалиста должно быть >= 1");
+
+        RuleFor(x => x.Comment)
+            .MaximumLength(500).WithMessage("Комментарий не может превышать 500 символов")
+            .When(x => x.Comment != null);
     }
 }

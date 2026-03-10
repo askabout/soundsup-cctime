@@ -27,5 +27,6 @@ public record SaveReserveCommand(
     Guid SpecialistId,
     bool SpecialistConfirmed,
     int SpecialistRepeats,
-    bool ForceOverwrite = false
+    bool ForceOverwrite = false,
+    string? Comment = null
 );

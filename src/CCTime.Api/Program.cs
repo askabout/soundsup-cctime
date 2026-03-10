@@ -41,7 +41,13 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers["Cache-Control"] = "no-cache";
+    }
+});
 
 app.MapAllEndpoints();
 

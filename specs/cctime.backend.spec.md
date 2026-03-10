@@ -42,6 +42,7 @@ reserves:
 - time_slot_id (UUID, NOT NULL)
 - client_confirmed (BOOLEAN, NOT NULL, default false)
 - specialist_confirmed (BOOLEAN, NOT NULL, default false)
+- comment (VARCHAR(500), NULL) — произвольный комментарий к резерву
 - UNIQUE (date, time_slot_id, room_id)
 
 

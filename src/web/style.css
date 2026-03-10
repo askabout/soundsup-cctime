@@ -134,6 +134,13 @@ body {
     -webkit-appearance: none;
 }
 
+#btn-refresh {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    line-height: 1;
+}
+
 #header-week-range {
     font-size: 11px;
     color: rgba(255,255,255,0.75);
@@ -254,6 +261,18 @@ body {
     font-size: 12px;
     line-height: 1.3;
     margin-top: 1px;
+}
+
+.cell-reserve .reserve-comment,
+.cell-reserve-sub .reserve-comment {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    font-style: italic;
+    line-height: 1.2;
+    margin-top: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* Оба подтверждения — зелёная заливка */
@@ -566,7 +585,8 @@ body {
 }
 
 .form-group select,
-.form-group input[type="number"] {
+.form-group input[type="number"],
+.form-group textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid var(--color-border);
@@ -575,6 +595,8 @@ body {
     color: var(--color-text);
     background: var(--color-bg);
     -webkit-appearance: none;
+    box-sizing: border-box;
+    resize: vertical;
 }
 
 .form-group select:focus,
@@ -602,6 +624,98 @@ body {
     margin-bottom: 0;
     cursor: pointer;
     flex: 1;
+}
+
+/* Select с кнопкой сброса */
+.select-with-clear {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.select-with-clear select {
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-clear {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    border-radius: var(--radius);
+    font-size: 20px;
+    line-height: 1;
+    color: var(--color-text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-clear:active {
+    background: var(--color-danger);
+    color: var(--color-white);
+    border-color: var(--color-danger);
+}
+
+/* Строка: недели + подтверждение + поделиться */
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-row-weeks {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.form-row-weeks label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.form-row-weeks input[type="number"] {
+    width: 56px;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 15px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    background: var(--color-bg);
+    -webkit-appearance: none;
+    box-sizing: border-box;
+}
+
+.form-row-confirm {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.form-row-confirm input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.form-row-confirm label {
+    font-size: 13px;
+    color: var(--color-text-light);
+    margin-bottom: 0;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
 /* Кнопка «Поделиться» */
@@ -778,7 +892,7 @@ body {
     text-align: center;
     transition: background 0.15s;
     word-break: break-word;
-    min-height: 38px;
+    min-height: 48px;
     flex: 1;
 }
 
@@ -916,9 +1030,14 @@ body {
     color: var(--color-white);
 }
 
+/* Day separator (thick left border between days in multi-day views) */
+.day-separator {
+    border-left: 2px solid var(--color-text-light) !important;
+}
+
 /* Week separator (thick left border on Monday in multi-week view) */
 .week-separator {
-    border-left: 3px solid var(--color-primary) !important;
+    border-left: 3px solid var(--color-warning) !important;
 }
 
 #schedule-footer {

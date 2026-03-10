@@ -10,6 +10,7 @@ public class Reserve
     public Guid TimeSlotId { get; set; }
     public bool ClientConfirmed { get; set; }
     public bool SpecialistConfirmed { get; set; }
+    public string? Comment { get; set; }
 
     public Client? Client { get; set; }
     public Specialist? Specialist { get; set; }

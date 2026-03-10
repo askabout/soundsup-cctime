@@ -25,7 +25,8 @@ public static class ReserveEndpoints
                     r.ClientId,
                     r.ClientConfirmed,
                     r.SpecialistId,
-                    r.SpecialistConfirmed
+                    r.SpecialistConfirmed,
+                    r.Comment
                 ))
                 .ToListAsync();
 
@@ -98,6 +99,7 @@ public static class ReserveEndpoints
                     mainReserve.SpecialistId = command.SpecialistId;
                     mainReserve.ClientConfirmed = command.ClientConfirmed;
                     mainReserve.SpecialistConfirmed = command.SpecialistConfirmed;
+                    mainReserve.Comment = string.IsNullOrWhiteSpace(command.Comment) ? null : command.Comment.Trim();
                 }
                 else
                 {
@@ -106,6 +108,7 @@ public static class ReserveEndpoints
                     mainReserve.SpecialistId = command.SpecialistId;
                     mainReserve.ClientConfirmed = command.ClientConfirmed;
                     mainReserve.SpecialistConfirmed = command.SpecialistConfirmed;
+                    mainReserve.Comment = string.IsNullOrWhiteSpace(command.Comment) ? null : command.Comment.Trim();
                 }
 
                 // 3. Replicate specialist to future weeks

@@ -62,7 +62,8 @@ GetReservesForDateQueryResult:
             "clientId": "UUID",
             "clientConfirmed": "boolean",
             "specialistId": "UUID",
-            "specialistConfirmed": "boolean"
+            "specialistConfirmed": "boolean",
+            "comment": "string | null"
         }
     ]
 }
@@ -83,7 +84,8 @@ SaveReserveCommand:
     "specialistId": "UUID",
     "specialistConfirmed": false,
     "specialistRepeats": 0,
-    "forceOverwrite": false
+    "forceOverwrite": false,
+    "comment": "string | null"
 }
 ```
 

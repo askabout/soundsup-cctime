@@ -300,6 +300,7 @@ function renderMultiDay() {
         if (day.isToday) h.classList.add('today');
         else if (day.isPast) h.classList.add('past');
         if (isMonday) h.classList.add('week-separator');
+        else if (di > 0) h.classList.add('day-separator');
         h.style.gridColumn = `${2 + di * rooms.length} / ${2 + (di + 1) * rooms.length}`;
         h.textContent = `${getDayNameShort(day.date)} ${formatDateShort(day.date)}`;
         grid.appendChild(h);
@@ -315,7 +316,9 @@ function renderMultiDay() {
         rooms.forEach((room, ri) => {
             const h = document.createElement('div');
             h.className = 'cell-room-header';
-            if (isMonday && ri === 0) h.classList.add('week-separator');
+            if (ri === 0 && di > 0) {
+                h.classList.add(isMonday ? 'week-separator' : 'day-separator');
+            }
             h.textContent = room.name;
             grid.appendChild(h);
         });
@@ -334,7 +337,9 @@ function renderMultiDay() {
                 for (let ri = 0; ri < rooms.length; ri++) {
                     const bc = document.createElement('div');
                     bc.className = 'cell-break';
-                    if (isMonday && ri === 0) bc.classList.add('week-separator');
+                    if (ri === 0 && di > 0) {
+                        bc.classList.add(isMonday ? 'week-separator' : 'day-separator');
+                    }
                     grid.appendChild(bc);
                 }
             });
@@ -365,7 +370,9 @@ function renderMultiDay() {
             rooms.forEach((room, ri) => {
                 const cell = document.createElement('div');
                 cell.className = 'cell-reserve' + (day.isPast ? ' past' : '');
-                if (isMonday && ri === 0) cell.classList.add('week-separator');
+                if (ri === 0 && di > 0) {
+                    cell.classList.add(isMonday ? 'week-separator' : 'day-separator');
+                }
 
                 const reserve = findReserve(day.dateStr, slot.id, room.id);
                 renderReserveCell(cell, reserve);
@@ -443,6 +450,7 @@ function renderVerticalMultiWeek() {
         const jsDayIndex = (dow + 1) % 7;
         const h = document.createElement('div');
         h.className = 'cell-date-header';
+        if (dow > 0) h.classList.add('day-separator');
         h.style.gridColumn = `${3 + dow * rooms.length} / ${3 + (dow + 1) * rooms.length}`;
         h.textContent = DAY_NAMES_SHORT[jsDayIndex];
         grid.appendChild(h);
@@ -458,9 +466,10 @@ function renderVerticalMultiWeek() {
     grid.appendChild(weekColRoom);
 
     for (let dow = 0; dow < 7; dow++) {
-        rooms.forEach((room) => {
+        rooms.forEach((room, ri) => {
             const h = document.createElement('div');
             h.className = 'cell-room-header';
+            if (ri === 0 && dow > 0) h.classList.add('day-separator');
             h.textContent = room.name;
             grid.appendChild(h);
         });
@@ -482,6 +491,7 @@ function renderVerticalMultiWeek() {
             for (let i = 0; i < dayCols; i++) {
                 const bc = document.createElement('div');
                 bc.className = 'cell-break';
+                if (i % rooms.length === 0 && i > 0) bc.classList.add('day-separator');
                 grid.appendChild(bc);
             }
             return;
@@ -533,9 +543,10 @@ function renderVerticalMultiWeek() {
 
         // For each day-of-week × room: one group cell with N sub-blocks
         for (let dow = 0; dow < 7; dow++) {
-            rooms.forEach((room) => {
+            rooms.forEach((room, ri) => {
                 const group = document.createElement('div');
                 group.className = 'cell-reserve-group';
+                if (ri === 0 && dow > 0) group.classList.add('day-separator');
 
                 for (let w = 0; w < numWeeks; w++) {
                     const day = weeks[w][dow];
@@ -586,6 +597,15 @@ function renderVerticalMultiWeek() {
                     }
                     sub.appendChild(clientSpan);
 
+                    if (reserve && reserve.comment) {
+                        const commentSpan = document.createElement('span');
+                        commentSpan.className = 'reserve-comment';
+                        commentSpan.textContent = reserve.comment.length > 20
+                            ? reserve.comment.slice(0, 20) + '…'
+                            : reserve.comment;
+                        sub.appendChild(commentSpan);
+                    }
+
                     sub.addEventListener('click', () => {
                         openReserveModal(day.dateStr, slot.id, slot.name, room.id, room.name, day.isPast);
                     });
@@ -635,6 +655,15 @@ function renderReserveCell(cell, reserve) {
 
     cell.appendChild(specSpan);
     cell.appendChild(clientSpan);
+
+    if (reserve && reserve.comment) {
+        const commentSpan = document.createElement('span');
+        commentSpan.className = 'reserve-comment';
+        commentSpan.textContent = reserve.comment.length > 20
+            ? reserve.comment.slice(0, 20) + '…'
+            : reserve.comment;
+        cell.appendChild(commentSpan);
+    }
 }
 
 /* ---------- Reserve modal ---------- */
@@ -658,6 +687,7 @@ function openReserveModal(dateStr, timeSlotId, timeSlotName, roomId, roomName, i
 
     document.getElementById('check-specialist-confirm').checked = existing ? existing.specialistConfirmed : false;
     document.getElementById('check-client-confirm').checked = existing ? existing.clientConfirmed : false;
+    document.getElementById('input-comment').value = existing ? (existing.comment || '') : '';
 
     const saveBtn = document.getElementById('btn-reserve-save');
     saveBtn.style.display = isPast ? 'none' : '';
@@ -788,7 +818,8 @@ async function handleSave() {
         clientId: document.getElementById('select-client').value,
         clientConfirmed: document.getElementById('check-client-confirm').checked,
         clientRepeats: Math.max(1, parseInt(document.getElementById('input-client-count').value) || 1),
-        forceOverwrite: document.getElementById('check-force-overwrite').checked
+        forceOverwrite: document.getElementById('check-force-overwrite').checked,
+        comment: document.getElementById('input-comment').value.trim() || null
     };
 
     try {
@@ -919,6 +950,16 @@ async function init() {
     document.getElementById('btn-reserve-cancel').addEventListener('click', closeReserveModal);
     document.getElementById('btn-share-specialist').addEventListener('click', handleShareSpecialist);
     document.getElementById('btn-share-client').addEventListener('click', handleShareClient);
+    document.getElementById('btn-clear-specialist').addEventListener('click', () => {
+        document.getElementById('select-specialist').value = GUID_EMPTY;
+    });
+    document.getElementById('btn-clear-client').addEventListener('click', () => {
+        document.getElementById('select-client').value = GUID_EMPTY;
+    });
+    document.getElementById('btn-refresh').addEventListener('click', async () => {
+        await loadCurrentView();
+        renderSchedule();
+    });
 
     initSwipe();
     renderSchedule();
